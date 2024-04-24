@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include <mydebug.h>
+#include <myfunction.h>
+
 #include <TFT_eSPI.h>       // Include the graphics library
 TFT_eSPI tft = TFT_eSPI();  // Create object "tft"
 
@@ -55,33 +58,32 @@ void printProcessorName(void) {
 }
 
 // Get pin name
-int8_t getPinName(int8_t pin)
-{
-  // For ESP32 and RP2040 pin labels on boards use the GPIO number
-  if (user.esp == 0x32 || user.esp == 0x2040) return pin;
+int8_t getPinName(int8_t pin) {
+	// For ESP32 and RP2040 pin labels on boards use the GPIO number
+	if (user.esp == 0x32 || user.esp == 0x2040) return pin;
 
-  if (user.esp == 0x8266) {
-    // For ESP8266 the pin labels are not the same as the GPIO number
-    // These are for the NodeMCU pin definitions:
-    //        GPIO       Dxx
-    if (pin == 16) return 0;
-    if (pin ==  5) return 1;
-    if (pin ==  4) return 2;
-    if (pin ==  0) return 3;
-    if (pin ==  2) return 4;
-    if (pin == 14) return 5;
-    if (pin == 12) return 6;
-    if (pin == 13) return 7;
-    if (pin == 15) return 8;
-    if (pin ==  3) return 9;
-    if (pin ==  1) return 10;
-    if (pin ==  9) return 11;
-    if (pin == 10) return 12;
-  }
+	if (user.esp == 0x8266) {
+		// For ESP8266 the pin labels are not the same as the GPIO number
+		// These are for the NodeMCU pin definitions:
+		//        GPIO       Dxx
+		if (pin == 16) return 0;
+		if (pin == 5) return 1;
+		if (pin == 4) return 2;
+		if (pin == 0) return 3;
+		if (pin == 2) return 4;
+		if (pin == 14) return 5;
+		if (pin == 12) return 6;
+		if (pin == 13) return 7;
+		if (pin == 15) return 8;
+		if (pin == 3) return 9;
+		if (pin == 1) return 10;
+		if (pin == 9) return 11;
+		if (pin == 10) return 12;
+	}
 
-  if (user.esp == 0x32F) return pin;
+	if (user.esp == 0x32F) return pin;
 
-  return -1; // Invalid pin
+	return -1;  // Invalid pin
 }
 
 void getInfo() {
@@ -291,40 +293,156 @@ void getInfo() {
 	Serial.println("[/code]");
 }
 
-void setup() {
-	Serial.begin(115200);
-	// Setup the LCD
-	tft.init();
-	tft.setRotation(3);
+// void setup() {
+// 	Serial.begin(115200);
+// 	// Setup the LCD
+// 	tft.init();
+// 	tft.setRotation(3);
+// 	getInfo();
+// }
+
+// void loop() {
+// 	runTime = millis();
+
+// 	tft.fillScreen(TFT_BLACK);
+// 	tft.startWrite();
+// 	for (int px = 1; px < TFT_HEIGHT; px++) {
+// 		for (int py = 0; py < TFT_WIDTH; py++) {
+// 			float x0 = (map(px, 0, TFT_HEIGHT, -250000 / 2, -242500 / 2)) / 100000.0;  // scaled x coordinate of pixel (scaled to lie in the Mandelbrot X scale (-2.5, 1))
+// 			float yy0 = (map(py, 0, TFT_WIDTH, -75000 / 4, -61000 / 4)) / 100000.0;    // scaled y coordinate of pixel (scaled to lie in the Mandelbrot Y scale (-1, 1))
+// 			float xx = 0.0;
+// 			float yy = 0.0;
+// 			int iteration = 0;
+// 			int max_iteration = 128;
+// 			while (((xx * xx + yy * yy) < 4) && (iteration < max_iteration)) {
+// 				float xtemp = xx * xx - yy * yy + x0;
+// 				yy = 2 * xx * yy + yy0;
+// 				xx = xtemp;
+// 				iteration++;
+// 			}
+// 			int color = rainbow((3 * iteration + 64) % 128);
+// 			yield();
+// 			tft.drawPixel(px, py, color);
+// 		}
+// 	}
+// 	tft.endWrite();
+
+// 	Serial.println(millis() - runTime);
+// 	while (1) yield();
+// }
+
+void setup(void) {
+	DEBUGINIT();
+	DEBUGLOG("%lu(%u) SETUP : Start\n",millis(),xPortGetCoreID());
+//	WiFi.mode(wifi_mode_t::WIFI_MODE_STA);
+	// WiFi.persistent( true );
+//	WiFi.setAutoConnect(true);
+	// WiFi.setAutoReconnect(true);
+	DEBUGLOG("%lu(%u) SSID:%s\n", millis(),xPortGetCoreID(), WiFi.SSID().c_str());
+	DEBUGLOG("%lu(%u) PWD:%s\n", millis(),xPortGetCoreID(), WiFi.psk().c_str());
+	DEBUGLOG("%lu(%u) Channel:%u\n", millis(),xPortGetCoreID(), WiFi.channel());
+	DEBUGLOG("%lu(%u) BSSID:%s\n", millis(),xPortGetCoreID(), WiFi.BSSIDstr().c_str());
+
+	WiFi.begin();
+
+	DEBUGLOG("%lu(%u) SSID:%s\n", millis(),xPortGetCoreID(), WiFi.SSID().c_str());
+	DEBUGLOG("%lu(%u) PWD:%s\n", millis(),xPortGetCoreID(), WiFi.psk().c_str());
+	DEBUGLOG("%lu(%u) Channel:%u\n", millis(),xPortGetCoreID(), WiFi.channel());
+	DEBUGLOG("%lu(%u) BSSID:%s\n", millis(),xPortGetCoreID(), WiFi.BSSIDstr().c_str());
+
+	for(uint8_t t = 0 ; t<30; t++){
+		delay(1000);
+		DEBUGLOG("[%u]", WiFi.status());
+	}
+	WiFi.begin("LnD", "solean230702");
+	DEBUGLOG("%lu(%u) SSID:%s\n", millis(),xPortGetCoreID(), WiFi.SSID().c_str());
+	DEBUGLOG("%lu(%u) PWD:%s\n", millis(),xPortGetCoreID(), WiFi.psk().c_str());
+	DEBUGLOG("%lu(%u) Channel:%u\n", millis(),xPortGetCoreID(), WiFi.channel());
+	DEBUGLOG("%lu(%u) BSSID:%s\n", millis(),xPortGetCoreID(), WiFi.BSSIDstr().c_str());
+	for(uint8_t t = 0 ; t<30; t++){
+		delay(1000);
+		DEBUGLOG("[%u]", WiFi.status());
+	}
+//	mySmartConfig();
+//	mySmartConfig(true);
+	if (WiFi.begin() != wl_status_t::WL_DISCONNECTED)
+		DEBUGLOG("%lu(%u) WIFI : OK\n",millis(),xPortGetCoreID());
+	else
+		DEBUGLOG("%lu(%u) WIFI : NOK\n",millis(),xPortGetCoreID());
+
+
+
+//	Serial.begin(115200);
 	getInfo();
+	tft.init();
+
+	tft.fillScreen(TFT_BLACK);
+
+	// Set "cursor" at top left corner of display (0,0) and select font 4
+	tft.setCursor(0, 0, 4);
+
+	// Set the font colour to be white with a black background
+	tft.setTextColor(TFT_WHITE, TFT_BLACK);
+
+	// We can now plot text on screen using the "print" class
+	tft.println("Initialised default\n");
+	tft.println("White text");
+
+	tft.setTextColor(TFT_RED, TFT_BLACK);
+	tft.println("Red text");
+
+	tft.setTextColor(TFT_GREEN, TFT_BLACK);
+	tft.println("Green text");
+
+	tft.setTextColor(TFT_BLUE, TFT_BLACK);
+	tft.println("Blue text");
+
+	delay(5000);
 }
 
 void loop() {
-	runTime = millis();
+	tft.invertDisplay(false);  // Where i is true or false
 
 	tft.fillScreen(TFT_BLACK);
-	tft.startWrite();
-	for (int px = 1; px < TFT_HEIGHT; px++) {
-		for (int py = 0; py < TFT_WIDTH; py++) {
-			float x0 = (map(px, 0, TFT_HEIGHT, -250000 / 2, -242500 / 2)) / 100000.0;  // scaled x coordinate of pixel (scaled to lie in the Mandelbrot X scale (-2.5, 1))
-			float yy0 = (map(py, 0, TFT_WIDTH, -75000 / 4, -61000 / 4)) / 100000.0;    // scaled y coordinate of pixel (scaled to lie in the Mandelbrot Y scale (-1, 1))
-			float xx = 0.0;
-			float yy = 0.0;
-			int iteration = 0;
-			int max_iteration = 128;
-			while (((xx * xx + yy * yy) < 4) && (iteration < max_iteration)) {
-				float xtemp = xx * xx - yy * yy + x0;
-				yy = 2 * xx * yy + yy0;
-				xx = xtemp;
-				iteration++;
-			}
-			int color = rainbow((3 * iteration + 64) % 128);
-			yield();
-			tft.drawPixel(px, py, color);
-		}
-	}
-	tft.endWrite();
 
-	Serial.println(millis() - runTime);
-	while (1) yield();
+	tft.setCursor(0, 0, 4);
+
+	tft.setTextColor(TFT_WHITE, TFT_BLACK);
+	tft.println("Invert OFF\n");
+
+	tft.println("White text");
+
+	tft.setTextColor(TFT_RED, TFT_BLACK);
+	tft.println("Red text");
+
+	tft.setTextColor(TFT_GREEN, TFT_BLACK);
+	tft.println("Green text");
+
+	tft.setTextColor(TFT_BLUE, TFT_BLACK);
+	tft.println("Blue text");
+
+	delay(5000);
+
+	// Binary inversion of colours
+	tft.invertDisplay(true);  // Where i is true or false
+
+	tft.fillScreen(TFT_BLACK);
+
+	tft.setCursor(0, 0, 4);
+
+	tft.setTextColor(TFT_WHITE, TFT_BLACK);
+	tft.println("Invert ON\n");
+
+	tft.println("White text");
+
+	tft.setTextColor(TFT_RED, TFT_BLACK);
+	tft.println("Red text");
+
+	tft.setTextColor(TFT_GREEN, TFT_BLACK);
+	tft.println("Green text");
+
+	tft.setTextColor(TFT_BLUE, TFT_BLACK);
+	tft.println("Blue text");
+
+	delay(5000);
 }
